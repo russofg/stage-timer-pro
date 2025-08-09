@@ -5,6 +5,9 @@ on:
     tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -57,14 +60,14 @@ jobs:
           releaseName: "Stage Timer Pro ${{ github.ref_name }}"
           releaseBody: |
             🎯 **Stage Timer Pro** - Aplicación profesional de timer para eventos
-            
+
             ✨ **Características:**
             - ⌨️ Atajos globales (⌘+Shift+Space, ⌘+Shift+R, ⌘+Shift+F)
             - 🔔 Notificaciones nativas y badges en dock
             - 🎥 Integración con Resolume Arena (OBS + NDI)
             - 🖥️ Soporte dual monitor automático
             - 🎨 Sistema de branding profesional
-            
+
             📦 **Instaladores disponibles:**
             - 🍎 macOS: Stage Timer Pro.dmg (Universal - Intel + Apple Silicon)
             - 🪟 Windows: Stage Timer Pro Setup.msi
