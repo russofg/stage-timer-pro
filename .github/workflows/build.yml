@@ -16,8 +16,6 @@ jobs:
         include:
           - platform: macos-latest
             args: "--target universal-apple-darwin"
-          - platform: ubuntu-latest
-            args: ""
           - platform: windows-latest
             args: ""
 
@@ -26,12 +24,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev pkg-config build-essential curl wget file
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
@@ -60,19 +52,19 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "Stage Timer Pro ${{ github.ref_name }}"
           releaseBody: |
+            releaseBody: |
             🎯 **Stage Timer Pro** - Aplicación profesional de timer para eventos
-
+            
             ✨ **Características:**
             - ⌨️ Atajos globales (⌘+Shift+Space, ⌘+Shift+R, ⌘+Shift+F)
             - 🔔 Notificaciones nativas y badges en dock
             - 🎥 Integración con Resolume Arena (OBS + NDI)
             - 🖥️ Soporte dual monitor automático
             - 🎨 Sistema de branding profesional
-
+            
             📦 **Instaladores disponibles:**
             - 🍎 macOS: Stage Timer Pro.dmg (Universal - Intel + Apple Silicon)
             - 🪟 Windows: Stage Timer Pro Setup.msi
-            - 🐧 Linux: .deb y .AppImage
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
