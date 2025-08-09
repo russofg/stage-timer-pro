@@ -2,7 +2,7 @@ name: Build Stage Timer Pro
 
 on:
   push:
-    tags: ['v*']
+    tags: ["v*"]
   workflow_dispatch:
 
 jobs:
@@ -10,12 +10,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-20.04, windows-latest]
+        include:
+          - platform: macos-latest
+            args: "--target universal-apple-darwin"
+          - platform: ubuntu-20.04
+            args: ""
+          - platform: windows-latest
+            args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-20.04'
@@ -25,17 +31,19 @@ jobs:
 
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: Sync node version and setup cache
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: "lts/*"
+          cache: "npm"
 
       - name: Install frontend dependencies
         run: npm install
@@ -45,8 +53,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: v__VERSION__
-          releaseName: 'Stage Timer Pro v__VERSION__'
-          releaseBody: 'Aplicación profesional de timer para eventos con atajos globales y soporte Resolume Arena'
-          releaseDraft: true
+          tagName: ${{ github.ref_name }}
+          releaseName: "Stage Timer Pro ${{ github.ref_name }}"
+          releaseBody: |
+            🎯 **Stage Timer Pro** - Aplicación profesional de timer para eventos
+            
+            ✨ **Características:**
+            - ⌨️ Atajos globales (⌘+Shift+Space, ⌘+Shift+R, ⌘+Shift+F)
+            - 🔔 Notificaciones nativas y badges en dock
+            - 🎥 Integración con Resolume Arena (OBS + NDI)
+            - 🖥️ Soporte dual monitor automático
+            - 🎨 Sistema de branding profesional
+            
+            📦 **Instaladores disponibles:**
+            - 🍎 macOS: Stage Timer Pro.dmg (Universal - Intel + Apple Silicon)
+            - 🪟 Windows: Stage Timer Pro Setup.msi
+            - 🐧 Linux: .deb y .AppImage
+          releaseDraft: false
           prerelease: false
+          args: ${{ matrix.args }}

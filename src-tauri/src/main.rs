@@ -198,11 +198,11 @@ async fn set_badge_label(label: Option<String>) -> Result<(), String> {
     {
         use std::process::Command;
 
-        if let Some(_badge_text) = label {
+        if let Some(badge_text) = label {
             // Set badge text (for example, remaining time)
             let script = format!(
                 r#"osascript -e 'tell application "System Events" to set the badge of application process "Stage Timer Pro" to "{}""#,
-                _badge_text
+                badge_text
             );
             let _ = Command::new("sh").arg("-c").arg(&script).output();
         } else {
