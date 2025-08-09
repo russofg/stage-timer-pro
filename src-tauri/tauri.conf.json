@@ -1,0 +1,61 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "Stage Timer Pro",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "bundle": {
+      "active": true,
+      "identifier": "com.matecode.stage-timer",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "copyright": "© 2025 MateCode. Todos los derechos reservados.",
+      "shortDescription": "Timer profesional para eventos",
+      "longDescription": "Aplicación profesional de timer para eventos con branding personalizable, soporte dual monitor, sistema de mensajes avanzado y funcionalidades para presentaciones profesionales.",
+      "targets": ["dmg", "msi", "deb", "appimage"],
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "label": "main",
+        "title": "Stage Timer Dashboard",
+        "fullscreen": false,
+        "resizable": true,
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1200,
+        "minHeight": 800,
+        "x": 50,
+        "y": 50,
+        "maximized": true
+      }
+    ],
+    "allowlist": {
+      "all": true,
+      "notification": {
+        "all": true
+      },
+      "globalShortcut": {
+        "all": true
+      }
+    }
+  }
+}

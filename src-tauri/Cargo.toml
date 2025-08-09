@@ -1,0 +1,29 @@
+[package]
+name = "stage-timer"
+version = "0.1.0"
+description = "Aplicación profesional de timer para eventos con branding personalizable y soporte dual monitor"
+authors = ["MateCode <info@matecode.dev>"]
+license = "MIT"
+repository = "https://github.com/matecode/stage-timer"
+homepage = "https://matecode.dev/stage-timer"
+keywords = ["timer", "events", "presentation", "dual-monitor", "professional"]
+categories = ["multimedia", "gui"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = [ "api-all"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
+futures-util = "0.3"
+uuid = { version = "1.0", features = ["v4"] }
+dashmap = "5.5"
+async-stream = "0.3"
+global-hotkey = "0.4"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
