@@ -5,6 +5,7 @@ import { formatMs } from './timer'
 import { listen } from '@tauri-apps/api/event'
 
 function Stage() {
+  
   const [data, setData] = useState({ 
     remainingMs: 15*60_000, 
     color: 'green', 
@@ -27,8 +28,15 @@ function Stage() {
   const [branding, setBranding] = useState({
     colors: { primary: '#3B82F6', secondary: '#10B981', background: '#1F2937', accent: '#F59E0B' },
     logo: '',
-    showBranding: true
+    showBranding: true,
+    logoSize: 80,
+    blackBackground: false
   })
+
+  // Update branding state when it changes
+  useEffect(() => {
+    // Any additional branding logic can go here if needed
+  }, [branding.logoSize, branding.logo, branding.showBranding])
   const prevColor = useRef('green')
   const [blink, setBlink] = useState(false)
 
@@ -60,23 +68,20 @@ function Stage() {
         // Emit to main window to request current data
         await emit('stage:request-initial-data', {})
       } catch (error) {
-        console.log('Could not request initial data:', error)
+        // Silently handle error - stage might not be ready yet
       }
     }
     
     // Request initial data after a short delay to ensure everything is ready
-    // SOLO si no tenemos branding configurado
+    // Only if we don't have custom branding configured
     const hasCustomBranding = branding.logo || branding.colors.primary !== '#3B82F6'
     if (!hasCustomBranding) {
       setTimeout(requestInitialData, 500)
-      console.log('Requesting initial data because no custom branding detected')
-    } else {
-      console.log('Skipping initial data request - custom branding already set')
     }
     
     listen('stage:state', (ev) => {
       const s = JSON.parse(ev.payload)
-      // Preservar configuración de tiempo actual si no viene en el payload
+      // Preserve current time configuration if not in payload
       setData(prevData => {
         const newData = {
           ...s,
@@ -89,52 +94,44 @@ function Stage() {
       }
       prevColor.current = s.color
       setBlink(s.color === 'red')
-    }).then(u => unsubs.push(u))
+    }).then(u => {
+      unsubs.push(u)
+    })
 
     listen('stage:message', (ev) => {
       const { text, ttlMs = 4000, fontSize = 200, blinking = false, replaceTimer = false } = JSON.parse(ev.payload)
       const until = Date.now() + ttlMs
-      console.log('Received message, current branding state:', branding)
       setMsg({ text, untilTs: until, fontSize, blinking, replaceTimer })
-    }).then(u => unsubs.push(u))
+    }).then(u => {
+      unsubs.push(u)
+    })
 
     listen('stage:branding', (ev) => {
       const brandingData = JSON.parse(ev.payload)
-      console.log('Received branding data:', brandingData)
       
-      // SOLO actualizar si realmente viene información nueva y válida
+      // Apply branding data directly to state
       setBranding(prevBranding => {
-        let hasChanges = false
-        const newBranding = { ...prevBranding }
-        
-        // Solo actualizar si hay cambios reales y válidos
-        if (brandingData.colors && JSON.stringify(brandingData.colors) !== JSON.stringify(prevBranding.colors)) {
-          newBranding.colors = brandingData.colors
-          hasChanges = true
+        const newBranding = {
+          colors: brandingData.colors || prevBranding.colors,
+          logo: brandingData.logo !== undefined ? brandingData.logo : prevBranding.logo,
+          logoSize: brandingData.logoSize !== undefined ? brandingData.logoSize : prevBranding.logoSize,
+          blackBackground: brandingData.blackBackground !== undefined ? brandingData.blackBackground : prevBranding.blackBackground,
+          showBranding: brandingData.showBranding !== undefined ? brandingData.showBranding : prevBranding.showBranding
         }
         
-        if (brandingData.logo !== undefined && brandingData.logo !== prevBranding.logo) {
-          newBranding.logo = brandingData.logo
-          hasChanges = true
-        }
-        
-        if (brandingData.showBranding !== undefined && brandingData.showBranding !== prevBranding.showBranding) {
-          newBranding.showBranding = brandingData.showBranding
-          hasChanges = true
-        }
-        
-        // Solo actualizar si hay cambios reales
-        if (hasChanges) {
-          console.log('Updating branding with changes:', newBranding)
-          return newBranding
-        } else {
-          console.log('No branding changes, keeping current state')
-          return prevBranding
-        }
+        return newBranding
       })
-    }).then(u => unsubs.push(u))
+    }).then(u => {
+      unsubs.push(u)
+    })
 
-    listen('stage:hide-message', () => setMsg(null)).then(u => unsubs.push(u))
+    listen('stage:hide-message', () => {
+      console.log('📥 RECEIVED stage:hide-message')
+      setMsg(null)
+    }).then(u => {
+      console.log('✅ stage:hide-message listener registered')
+      unsubs.push(u)
+    })
 
     return () => { unsubs.forEach(u => u()); }
   }, []) // NO dependencies - solo ejecutar una vez
@@ -242,9 +239,47 @@ function Stage() {
     const remainingPercent = (remainingMs / totalMs) * 100
     return { progressPercent, progressColor, remainingPercent }
   }, [data.remainingMs, data.totalMs, data.colorInfo, branding.colors])
+
+  // Función para obtener color de texto legible para mensajes
+  const getMessageTextColor = () => {
+    const bgColor = getBackgroundColor()
+    
+    // Si el fondo es negro, usar blanco
+    if (bgColor === '#000000') {
+      return '#FFFFFF'
+    }
+    
+    // Si el fondo es del mismo color que el progressColor, usar blanco para contraste
+    if (bgColor === progressData.progressColor) {
+      return '#FFFFFF'
+    }
+    
+    // Si el fondo es rojo (crítico), usar blanco para mejor contraste
+    if (bgColor === '#DC2626' || bgColor === '#EF4444') {
+      return '#FFFFFF'
+    }
+    
+    // Si el fondo es verde, usar blanco para mejor contraste
+    if (bgColor === '#10B981' || bgColor === '#059669') {
+      return '#FFFFFF'
+    }
+    
+    // Si el fondo es amarillo/naranja, usar blanco para mejor contraste
+    if (bgColor === '#F59E0B' || bgColor === '#EF4444') {
+      return '#FFFFFF'
+    }
+    
+    // Para otros casos, usar blanco por defecto para máximo contraste
+    return '#FFFFFF'
+  }
   
   // Usar colores del branding o colores avanzados
   const getBackgroundColor = () => {
+    // Si está activado el fondo negro, usarlo siempre
+    if (branding.blackBackground) {
+      return '#000000'
+    }
+    
     // Si tenemos información detallada de color, usarla
     if (data.colorInfo && data.colorInfo.bgColor) {
       return data.colorInfo.bgColor
@@ -273,17 +308,16 @@ function Stage() {
       className="w-screen h-screen text-white flex items-center justify-center relative overflow-hidden"
       style={{ backgroundColor: bgColor }}
     >
-      {/* Branding Header */}
-      {branding.showBranding && (
+      {/* Logo del usuario - Solo cuando esté activado y tenga logo */}
+      {branding.showBranding && branding.logo && (
         <div className="absolute top-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center z-10">
-          {branding.logo && (
-            <img 
-              src={branding.logo} 
-              alt="Logo" 
-              className="h-12 w-auto object-contain"
-              onError={(e) => e.target.style.display = 'none'}
-            />
-          )}
+          <img 
+            src={branding.logo} 
+            alt="Logo" 
+            className="w-auto object-contain"
+            style={{ height: branding.logoSize + 'px' }}
+            onError={(e) => e.target.style.display = 'none'}
+          />
         </div>
       )}
 
@@ -378,7 +412,7 @@ function Stage() {
               fontSize: `${Math.max(msg.fontSize, 24)}px`,
               lineHeight: 1.2,
               textShadow: '3px 3px 6px rgba(0,0,0,0.5)',
-              color: branding.colors.primary
+              color: getMessageTextColor()
             }}
           >
             {msg.text}
@@ -392,8 +426,8 @@ function Stage() {
           className={`absolute bottom-12 left-1/2 -translate-x-1/2 px-6 py-4 rounded-2xl font-semibold backdrop-blur-sm max-w-[90vw] text-center border-2 ${messageBlinking ? 'blink' : ''}`}
           style={{
             backgroundColor: `${branding.colors.background}E6`, // 90% opacity
-            borderColor: branding.colors.primary,
-            color: branding.colors.primary
+            borderColor: getMessageTextColor(),
+            color: getMessageTextColor()
           }}
         >
           <div 
@@ -462,27 +496,25 @@ function Stage() {
         )}
       </div>
 
-      {/* Footer con branding sutil */}
-      {branding.showBranding && (
-        <div className="absolute bottom-4 right-6 opacity-60">
-          <div 
-            className="text-sm font-medium flex items-center gap-1"
-            style={{ color: 'white' }}
+      {/* Footer con branding sutil - SIEMPRE VISIBLE */}
+      <div className="absolute bottom-4 right-6 opacity-60">
+        <div 
+          className="text-sm font-medium flex items-center gap-1"
+          style={{ color: 'white' }}
+        >
+          Hecho con{' '}
+          <span 
+            className="animate-pulse inline-block"
+            style={{
+              animation: 'heartbeat 1.5s ease-in-out infinite',
+              color: 'white'
+            }}
           >
-            Hecho con{' '}
-            <span 
-              className="animate-pulse inline-block"
-              style={{
-                animation: 'heartbeat 1.5s ease-in-out infinite',
-                color: 'white'
-              }}
-            >
-              ♥
-            </span>
-            {' '}por MateCode
-          </div>
+            ♥
+          </span>
+          {' '}por MateCode
         </div>
-      )}
+      </div>
       
       <style jsx>{`
         @keyframes heartbeat {

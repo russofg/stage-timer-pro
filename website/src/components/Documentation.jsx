@@ -11,7 +11,7 @@ export default function Documentation() {
   };
 
   return (
-    <section id="documentacion" className="py-24 bg-gradient-to-b from-white to-gray-50">
+    <section id="documentacion" className="py-16 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-6">
         {/* Header */}
         <motion.div 

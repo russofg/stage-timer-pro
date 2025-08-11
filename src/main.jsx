@@ -21,6 +21,18 @@ function Button({ children, onClick, className = '', variant = 'default' }) {
   )
 }
 
+// Función para formatear tiempo de milisegundos a HH:MM:SS
+function formatTime(milliseconds) {
+  if (!milliseconds || milliseconds < 0) return '00:00:00'
+  
+  const totalSeconds = Math.floor(milliseconds / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
 function App() {
   // Estados del timer (ahora con horas, minutos, segundos)
   const [hours, setHours] = useState(0)
@@ -71,6 +83,8 @@ function App() {
     accent: '#F59E0B'
   })
   const [logo, setLogo] = useState('')
+  const [logoSize, setLogoSize] = useState(120) // Tamaño en píxeles, sincronizado con stage
+  const [blackBackground, setBlackBackground] = useState(false)
   const [showBranding, setShowBranding] = useState(true)
   
   // Estados globales para mensajes y branding actual
@@ -92,10 +106,10 @@ function App() {
   // Mensajes predefinidos
   const [presetMessages] = useState([
     'TIME OUT',
-    'DESCANSO',
-    'PRÓXIMO TURNO',
+    'BREAK',
+    '5 MINUTOS',
     'ÚLTIMO MINUTO',
-    'FINALIZADO',
+    'FINALIZANDO',
     'PREPARARSE'
   ])
 
@@ -173,26 +187,6 @@ function App() {
   }, [])
 
   // Efecto para enviar branding cuando cambie (solo si hay branding personalizado)
-  useEffect(() => {
-    const hasCustomBranding = logo || brandColors.primary !== '#3B82F6' || brandColors.secondary !== '#10B981'
-    if (hasCustomBranding) {
-      console.log('Sending updated branding automatically because custom branding detected')
-      updateBranding()
-    } else {
-      // Inicializar branding por defecto
-      setCurrentGlobalBranding({
-        colors: brandColors,
-        logo,
-        showBranding
-      })
-    }
-    
-    // Enviar estado inicial al JSON
-    if (timerRef.current) {
-      pushStageState()
-    }
-  }, [brandColors, logo, showBranding])
-
   // Inicializar timer al cargar la aplicación
   useEffect(() => {
     applyInitial()
@@ -214,6 +208,37 @@ function App() {
       timePosition
     }
   }, [showCurrentTime, timeFormat24h, showSeconds, timePosition])
+
+  // Efecto para actualizar branding automáticamente - MÁS SIMPLE
+  useEffect(() => {
+    const updateBrandingNow = async () => {
+      const brandingData = {
+        colors: brandColors,
+        logo,
+        logoSize,
+        blackBackground,
+        showBranding
+      }
+      
+      console.log('🔄 Updating branding immediately:', { logoSize, blackBackground, showBranding })
+      
+      // Actualizar estado global
+      setCurrentGlobalBranding(brandingData)
+      
+      // Enviar al stage inmediatamente
+      try {
+        await invoke('emit_to_stage', {
+          event: 'stage:branding',
+          payload: JSON.stringify(brandingData)
+        })
+        console.log('✅ Branding sent successfully')
+      } catch (err) {
+        console.error('❌ Error sending branding:', err)
+      }
+    }
+    
+    updateBrandingNow()
+  }, [brandColors, logo, logoSize, blackBackground, showBranding])
 
   // aplicar tiempo inicial
   const applyInitial = () => {
@@ -654,24 +679,19 @@ function App() {
     }
   }
 
-  const updateBranding = async () => {
-    const brandingData = {
-      colors: brandColors,
-      logo,
-      showBranding
-    }
-    console.log('Sending branding data:', brandingData)
-    
-    // Actualizar estado global
-    setCurrentGlobalBranding(brandingData)
-    
-    await invoke('emit_to_stage', {
-      event: 'stage:branding',
-      payload: JSON.stringify(brandingData)
-    })
-    
-    // Actualizar estado
-    await pushStageState()
+  // Funciones para la vista previa del stage
+  const getPreviewBackgroundColor = () => {
+    if (blackBackground) return '#000000' // Fondo negro si está activado
+    if (state.color === 'critical') return '#DC2626' // Rojo crítico
+    if (state.color === 'warning') return '#EF4444'  // Rojo warning
+    if (state.color === 'caution') return '#F59E0B'  // Naranja/amarillo
+    if (state.color === 'good' || state.color === 'green') return '#059669' // Verde
+    if (state.color === 'transition') return '#10B981' // Verde claro
+    return '#1F2937' // Gris por defecto cuando está detenido
+  }
+
+  const getPreviewTextColor = () => {
+    return '#FFFFFF' // Siempre blanco para buena legibilidad
   }
 
   const hideMessage = async () => {
@@ -711,7 +731,17 @@ function App() {
           console.log('Timer state sent to stage')
           
           // Send current branding to ensure new window has correct branding
-          await updateBranding()
+          const brandingData = {
+            colors: brandColors,
+            logo,
+            logoSize,
+            blackBackground,
+            showBranding
+          }
+          await invoke('emit_to_stage', {
+            event: 'stage:branding',
+            payload: JSON.stringify(brandingData)
+          })
           console.log('Branding sent to stage')
         } catch (error) {
           console.error('Error sending data to stage:', error)
@@ -1388,262 +1418,465 @@ function App() {
           </div>
         </div>
 
-        {/* Mensajes */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Mensajes y Comunicación */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Mensaje personalizado */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">💬 Mensaje Personalizado</h3>
-            <div className="space-y-2">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">💬</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Mensaje Personalizado</h3>
+            </div>
+            
+            <div className="space-y-3">
               <input 
                 value={message} 
                 onChange={e=>setMessage(e.target.value)} 
                 placeholder="Escribe tu mensaje..." 
-                className="w-full border rounded px-3 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 onKeyPress={e => e.key === 'Enter' && sendMessage()}
               />
+              
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-xs text-gray-600 dark:text-gray-300">Tamaño (px)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Tamaño</label>
                   <input 
                     type="number" 
                     value={fontSize} 
                     onChange={e=>setFontSize(Math.max(12, +e.target.value||200))} 
-                    className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 dark:text-white"
                     min="12"
+                    placeholder="200px"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-600 dark:text-gray-300">Duración (s)</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Duración</label>
                   <input 
                     type="number" 
                     value={messageTtl} 
                     onChange={e=>setMessageTtl(+e.target.value||0)} 
-                    className="w-full border rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 dark:text-white"
+                    placeholder="5s"
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1">
-                    <input 
-                      id="blink" 
-                      type="checkbox" 
-                      checked={blinking} 
-                      onChange={e=>setBlinking(e.target.checked)}
-                      className="text-blue-500"
-                    />
-                    <label htmlFor="blink" className="text-xs text-gray-600 dark:text-gray-300">Titila</label>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <input 
-                      id="replace" 
-                      type="checkbox" 
-                      checked={replaceTimer} 
-                      onChange={e=>setReplaceTimer(e.target.checked)}
-                      className="text-blue-500"
-                    />
-                    <label htmlFor="replace" className="text-xs text-gray-600 dark:text-gray-300">Reemplaza timer</label>
+                <div className="space-y-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Opciones</label>
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-1.5 text-xs">
+                      <input 
+                        type="checkbox" 
+                        checked={blinking} 
+                        onChange={e=>setBlinking(e.target.checked)}
+                        className="w-3 h-3 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-600 dark:text-gray-300">Titila</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs">
+                      <input 
+                        type="checkbox" 
+                        checked={replaceTimer} 
+                        onChange={e=>setReplaceTimer(e.target.checked)}
+                        className="w-3 h-3 text-blue-600 rounded"
+                      />
+                      <span className="text-gray-600 dark:text-gray-300">Reemplaza timer</span>
+                    </label>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              
+              <label className="flex items-center gap-2 text-sm">
                 <input 
-                  id="persist" 
                   type="checkbox" 
                   checked={persistMsg} 
                   onChange={e=>setPersistMsg(e.target.checked)}
-                  className="text-blue-500"
+                  className="w-4 h-4 text-blue-600 rounded"
                 />
-                <label htmlFor="persist" className="text-xs text-gray-600 dark:text-gray-300">Mantener hasta ocultar manualmente</label>
-              </div>
+                <span className="text-gray-600 dark:text-gray-300">Mantener hasta ocultar manualmente</span>
+              </label>
+              
               <div className="flex gap-2">
-                <Button onClick={sendMessage} variant="primary" className="flex-1">📤 Enviar</Button>
-                <Button onClick={hideMessage} variant="danger" className="flex-1">🚫 Ocultar</Button>
+                <Button onClick={sendMessage} variant="primary" className="flex-1 text-sm py-2">
+                  📤 Enviar
+                </Button>
+                <Button onClick={hideMessage} variant="danger" className="flex-1 text-sm py-2">
+                  🚫 Ocultar
+                </Button>
               </div>
             </div>
           </div>
 
           {/* Mensajes predefinidos */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">⚡ Mensajes Predefinidos</h3>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">⚡</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Mensajes Predefinidos</h3>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 mb-3">
               {presetMessages.map((preset, index) => (
                 <Button 
                   key={index}
                   onClick={() => sendPresetMessage(preset)}
                   variant="default"
-                  className="text-sm"
+                  className="text-xs py-2 px-3 hover:scale-105 transition-transform"
                 >
                   {preset}
                 </Button>
               ))}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              Los mensajes predefinidos usan la configuración actual de tamaño, titilación y duración.
+            
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                <span className="font-medium text-blue-600 dark:text-blue-400">💡 Configuración:</span> Los mensajes usan el tamaño, titilación y duración actuales.
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Branding y personalización */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
-            <h3 className="font-semibold text-white">🎨 Branding del Evento</h3>
-            <div className="space-y-2">
+        {/* Branding y Herramientas Profesionales */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Branding del Evento */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">🎨</span>
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Branding del Evento</h3>
+            </div>
+            
+            <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-300">URL del Logo</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">URL del Logo</label>
                 <input 
                   value={logo} 
                   onChange={e=>setLogo(e.target.value)} 
                   placeholder="https://ejemplo.com/logo.png" 
-                  className="w-full border rounded px-2 py-1 text-sm bg-gray-700 border-gray-600 text-white"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
-                <div className="text-xs text-gray-400 mt-1">💡 Recomendado: 200x80px o similar, formato PNG/JPG</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                  <span>💡</span> Recomendado: 200×80px, PNG/JPG
+                </div>
               </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Tamaño del Logo (px)</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="range" 
+                    min="24" 
+                    max="120" 
+                    value={logoSize} 
+                    onChange={e=>{
+                      const newSize = Number(e.target.value)
+                      console.log('🎛️ SLIDER CHANGED TO:', newSize)
+                      setLogoSize(newSize)
+                    }}
+                    className="flex-1"
+                  />
+                  <input 
+                    type="number" 
+                    min="24" 
+                    max="120" 
+                    value={logoSize} 
+                    onChange={e=>{
+                      const newSize = Math.max(24, Math.min(120, Number(e.target.value)))
+                      console.log('🔢 INPUT CHANGED TO:', newSize)
+                      setLogoSize(newSize)
+                    }}
+                    className="w-16 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs bg-white dark:bg-gray-700 dark:text-white"
+                  />
+                  <span className="text-xs text-gray-500 dark:text-gray-400">px</span>
+                </div>
+              </div>
+              
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-gray-300">Color Primario</label>
+                <label className="flex items-center gap-2 text-sm">
                   <input 
-                    type="color" 
-                    value={brandColors.primary} 
-                    onChange={e=>setBrandColors(prev => ({...prev, primary: e.target.value}))} 
-                    className="w-full h-8 border rounded"
+                    type="checkbox" 
+                    checked={showBranding} 
+                    onChange={e=>setShowBranding(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 rounded"
                   />
-                </div>
-                <div>
-                  <label className="text-xs text-gray-300">Color Secundario</label>
+                  <span className="text-gray-600 dark:text-gray-300">Mostrar logo</span>
+                </label>
+                
+                <label className="flex items-center gap-2 text-sm">
                   <input 
-                    type="color" 
-                    value={brandColors.secondary} 
-                    onChange={e=>setBrandColors(prev => ({...prev, secondary: e.target.value}))} 
-                    className="w-full h-8 border rounded"
+                    type="checkbox" 
+                    checked={blackBackground} 
+                    onChange={e=>setBlackBackground(e.target.checked)}
+                    className="w-4 h-4 text-purple-600 rounded"
                   />
+                  <span className="text-gray-600 dark:text-gray-300">Fondo negro</span>
+                </label>
+              </div>
+              
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <span className="font-medium text-purple-600 dark:text-purple-400">ℹ️ Información:</span> Los colores del stage se configuran automáticamente según el estado del timer (verde, amarillo, rojo).
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input 
-                  id="showBrand" 
-                  type="checkbox" 
-                  checked={showBranding} 
-                  onChange={e=>setShowBranding(e.target.checked)}
-                  className="text-blue-500"
-                />
-                <label htmlFor="showBrand" className="text-xs text-gray-300">Mostrar branding en Stage</label>
+            </div>
+          </div>
+
+          {/* Vista Previa del Stage */}
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">👁️</span>
               </div>
-              <Button onClick={updateBranding} variant="primary" className="w-full">
-                🔄 Actualizar Branding en Stage
-              </Button>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Vista Previa del Stage</h3>
+            </div>
+            
+            <div className="space-y-3">
+              {/* Simulación del Stage en miniatura */}
+              <div 
+                className="relative border border-gray-300 dark:border-gray-600 rounded-lg aspect-video flex flex-col items-center justify-center text-center overflow-hidden"
+                style={{ 
+                  minHeight: '200px',
+                  backgroundColor: getPreviewBackgroundColor()
+                }}
+              >
+                {/* Timer Principal */}
+                <div 
+                  className="text-4xl font-mono font-bold mb-2"
+                  style={{ 
+                    color: getPreviewTextColor()
+                  }}
+                >
+                  {formatTime(state.remainingMs)}
+                </div>
+                
+                {/* Nombre del Timer */}
+                {state.currentTimerName && (
+                  <div 
+                    className="text-lg font-medium mb-2 opacity-80"
+                    style={{ 
+                      color: getPreviewTextColor()
+                    }}
+                  >
+                    {state.currentTimerName}
+                  </div>
+                )}
+                
+                {/* Mensaje si existe */}
+                {state.messageShown && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50"
+                  >
+                    <div 
+                      className="text-xl font-bold text-center px-4 text-white"
+                      style={{
+                        fontSize: Math.min(24, (state.messageFontSize || 200) * 0.1) + 'px'
+                      }}
+                    >
+                      {state.messageText}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Logo si está configurado - centrado como en el stage */}
+                {logo && showBranding && (
+                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
+                    <img 
+                      src={logo} 
+                      alt="Logo" 
+                      className="w-auto object-contain opacity-80"
+                      style={{ height: logoSize * 0.67 + 'px' }} // Escalado para vista previa
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                )}
+                
+                {/* Branding matecode - SIEMPRE VISIBLE */}
+                <div 
+                  className="absolute bottom-2 right-2 text-xs opacity-60"
+                  style={{ 
+                    color: getPreviewTextColor()
+                  }}
+                >
+                  Hecho con ♥ por MateCode
+                </div>
+                
+                {/* Barra de progreso */}
+                <div className="absolute bottom-0 left-0 h-1 bg-black bg-opacity-30 w-full">
+                  <div 
+                    className="h-full transition-all duration-1000"
+                    style={{ 
+                      width: `${Math.max(0, Math.min(100, ((state.totalMs - state.remainingMs) / state.totalMs) * 100))}%`,
+                      backgroundColor: getPreviewTextColor()
+                    }}
+                  ></div>
+                </div>
+              </div>
+              
+              {/* Información del estado actual */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <div className="font-medium text-gray-600 dark:text-gray-300">Estado</div>
+                  <div className="text-gray-800 dark:text-gray-200 capitalize">
+                    {state.color || 'Detenido'}
+                  </div>
+                </div>
+                <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <div className="font-medium text-gray-600 dark:text-gray-300">Progreso</div>
+                  <div className="text-gray-800 dark:text-gray-200">
+                    {Math.round(((state.totalMs - state.remainingMs) / state.totalMs) * 100 || 0)}%
+                  </div>
+                </div>
+                <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <div className="font-medium text-gray-600 dark:text-gray-300">Secuencia</div>
+                  <div className="text-gray-800 dark:text-gray-200">
+                    {state.currentSequenceIndex !== null ? `${state.currentSequenceIndex + 1}/${timerSequence.length}` : 'Individual'}
+                  </div>
+                </div>
+                <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                  <div className="font-medium text-gray-600 dark:text-gray-300">Mensaje</div>
+                  <div className="text-gray-800 dark:text-gray-200">
+                    {state.messageShown ? 'Visible' : 'Oculto'}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="text-xs text-blue-700 dark:text-blue-300">
+                  <span className="font-medium">🔄 Actualización en tiempo real:</span> Esta vista previa refleja exactamente lo que se muestra en el Stage.
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Atajos Globales */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">⚡ Atajos Globales</h3>
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-2">
-              <p className="text-green-400 font-medium">✅ Funcionan desde cualquier aplicación:</p>
-              <div className="space-y-1 pl-2">
-                <div className="flex justify-between items-center">
-                  <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">⌘+Shift+Space</code>
-                  <span>Start/Pause Timer</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">⌘+Shift+R</code>
-                  <span>Reset Timer</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">⌘+Shift+F</code>
-                  <span>Toggle Stage Fullscreen</span>
-                </div>
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">⚡</span>
               </div>
-              <p className="text-blue-400 text-xs mt-2">
-                💡 Los atajos están siempre activos, incluso cuando Stage Timer Pro no tiene el foco
-              </p>
+              <h3 className="font-semibold text-gray-900 dark:text-white">Atajos Globales</h3>
+            </div>
+            
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded text-xs border border-gray-200 dark:border-gray-600">⌘+Shift+Space</code>
+                <span className="text-xs text-gray-600 dark:text-gray-300">Start/Pause</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded text-xs border border-gray-200 dark:border-gray-600">⌘+Shift+R</code>
+                <span className="text-xs text-gray-600 dark:text-gray-300">Reset Timer</span>
+              </div>
+              <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <code className="bg-white dark:bg-gray-800 px-2 py-1 rounded text-xs border border-gray-200 dark:border-gray-600">⌘+Shift+F</code>
+                <span className="text-xs text-gray-600 dark:text-gray-300">Toggle Fullscreen</span>
+              </div>
+            </div>
+            
+            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="text-xs text-green-700 dark:text-green-300 flex items-center gap-1">
+                <span>✅</span> Activos desde cualquier aplicación
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Integración con Software de Video */}
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow space-y-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">🎥 Resolume Arena / OBS</h3>
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-3">
-              <p className="text-purple-400 font-medium">Configure el Stage para captura de video:</p>
+        {/* Integración con Software de Video */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm">🎥</span>
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Integración con Software de Video</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Configuración de Captura */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                Configurar Stage para Captura
+              </div>
               
               <div className="grid grid-cols-2 gap-2">
                 <Button 
                   onClick={() => setStageForCapture(1920, 1080)} 
                   variant="primary" 
-                  className="text-xs"
+                  className="text-xs py-2"
                 >
-                  📺 1920x1080 (Full HD)
+                  📺 1920×1080
                 </Button>
                 <Button 
                   onClick={() => setStageForCapture(1280, 720)} 
                   variant="primary" 
-                  className="text-xs"
+                  className="text-xs py-2"
                 >
-                  📺 1280x720 (HD)
+                  📺 1280×720
                 </Button>
                 <Button 
                   onClick={() => setStageForCapture(1024, 768)} 
                   variant="primary" 
-                  className="text-xs"
+                  className="text-xs py-2"
                 >
-                  📺 1024x768 (4:3)
+                  📺 1024×768
                 </Button>
                 <Button 
                   onClick={() => resetStageWindow()} 
                   variant="warning" 
-                  className="text-xs"
+                  className="text-xs py-2"
                 >
-                  🔄 Reset Normal
+                  🔄 Reset
                 </Button>
               </div>
               
-              <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded text-xs space-y-2">
-                <div>
-                  <p className="font-medium text-blue-600 dark:text-blue-400">📋 Método 1 - OBS + Virtual Camera:</p>
-                  <ol className="list-decimal list-inside space-y-1 mt-1">
-                    <li>Abre OBS Studio</li>
-                    <li>Agrega "Window Capture" → "Stage Timer - Video Capture"</li>
-                    <li>Inicia "Virtual Camera" en OBS</li>
-                    <li>En Resolume: Sources → Webcam → "OBS Virtual Camera"</li>
-                  </ol>
-                </div>
-                
-                <div>
-                  <p className="font-medium text-green-600 dark:text-green-400">📋 Método 2 - NDI (Recomendado):</p>
-                  <ol className="list-decimal list-inside space-y-1 mt-1">
-                    <li>Instala NDI Tools (gratis)</li>
-                    <li>Abre "NDI Screen Capture"</li>
-                    <li>Selecciona "Stage Timer - Video Capture"</li>
-                    <li>En Resolume: Sources → NDI → "Stage Timer"</li>
-                  </ol>
-                </div>
-                
-                <div>
-                  <p className="font-medium text-orange-600 dark:text-orange-400">📋 Método 3 - Captura Directa:</p>
-                  <ol className="list-decimal list-inside space-y-1 mt-1">
-                    <li>En Resolume: Sources → QuickTime/AVCapture</li>
-                    <li>Selecciona "Desktop" o "Stage Timer"</li>
-                    <li>Ajusta el área de captura si es necesario</li>
-                  </ol>
-                </div>
-              </div>
-              
-              <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded text-xs">
-                <p className="font-medium text-blue-800 dark:text-blue-300">💡 Tip Profesional:</p>
-                <p>El método NDI es el más profesional para streaming y VJ. OBS Virtual Camera es más fácil para empezar.</p>
-              </div>
-              
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2">
                 <Button 
                   onClick={() => window.open('https://obsproject.com/', '_blank')} 
-                  variant="primary" 
-                  className="text-xs flex-1"
+                  variant="default" 
+                  className="text-xs flex-1 py-2"
                 >
-                  📥 Descargar OBS
+                  📥 OBS Studio
                 </Button>
                 <Button 
                   onClick={() => window.open('https://ndi.video/tools/', '_blank')} 
-                  variant="success" 
-                  className="text-xs flex-1"
+                  variant="default" 
+                  className="text-xs flex-1 py-2"
                 >
-                  📥 Descargar NDI
+                  📥 NDI Tools
                 </Button>
+              </div>
+            </div>
+            
+            {/* Métodos de Integración */}
+            <div className="space-y-3">
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                Métodos de Integración
+              </div>
+              
+              <div className="space-y-2 text-xs">
+                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                  <div className="font-medium text-blue-800 dark:text-blue-300 mb-1">🥇 NDI (Recomendado)</div>
+                  <div className="text-blue-700 dark:text-blue-400">Calidad profesional • Sin lag • Fácil setup</div>
+                </div>
+                
+                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                  <div className="font-medium text-green-800 dark:text-green-300 mb-1">🥈 OBS Virtual Camera</div>
+                  <div className="text-green-700 dark:text-green-400">Gratis • Compatible con todo • Fácil</div>
+                </div>
+                
+                <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800">
+                  <div className="font-medium text-orange-800 dark:text-orange-300 mb-1">🥉 Captura Directa</div>
+                  <div className="text-orange-700 dark:text-orange-400">Básico • Mayor uso de CPU</div>
+                </div>
+              </div>
+              
+              <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                <div className="text-xs text-purple-700 dark:text-purple-300">
+                  💡 <strong>Tip:</strong> Usa fondo negro para mejor chromakey
+                </div>
               </div>
             </div>
           </div>

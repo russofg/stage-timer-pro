@@ -41,7 +41,7 @@ export default function Download() {
                 Windows
               </h3>
               <p className="text-gray-600 mb-6">
-                Versión completa para Windows 10/11
+                {t('download.systemRequirements.windows.description')}
               </p>
               <motion.a
                 href="https://github.com/russofg/stage-timer-pro/releases/download/v1.0.2/Stage.Timer.Pro_1.0.2_x64_en-US.msi"
@@ -52,10 +52,10 @@ export default function Download() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Descargar para Windows
+                {t('download.free.downloadWindows')}
               </motion.a>
               <p className="text-sm text-gray-500 mt-3">
-                ~3.46 MB - Instalador directo
+                {t('download.systemRequirements.windows.fileSize')}
               </p>
             </div>
           </motion.div>
@@ -77,7 +77,7 @@ export default function Download() {
                 macOS
               </h3>
               <p className="text-gray-600 mb-6">
-                Versión completa para macOS 10.15+
+                {t('download.systemRequirements.macos.description')}
               </p>
               <motion.a
                 href="https://github.com/russofg/stage-timer-pro/releases/download/v1.0.2/Stage.Timer.Pro_1.0.2_universal.dmg"
@@ -88,10 +88,10 @@ export default function Download() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Descargar para macOS
+                {t('download.free.downloadMac')}
               </motion.a>
               <p className="text-sm text-gray-500 mt-3">
-                ~8.62 MB - Instalador DMG
+                {t('download.systemRequirements.macos.fileSize')}
               </p>
             </div>
           </motion.div>
@@ -105,7 +105,7 @@ export default function Download() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            Características Incluidas
+            {t('download.features.title')}
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
@@ -114,8 +114,8 @@ export default function Download() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Rápido e Intuitivo</h4>
-              <p className="text-sm text-gray-600">Interfaz simple y fluida para eventos profesionales</p>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('download.features.fast.title')}</h4>
+              <p className="text-sm text-gray-600">{t('download.features.fast.description')}</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -123,8 +123,8 @@ export default function Download() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Multi-pantalla</h4>
-              <p className="text-sm text-gray-600">Soporte completo para múltiples monitores</p>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('download.features.multiscreen.title')}</h4>
+              <p className="text-sm text-gray-600">{t('download.features.multiscreen.description')}</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -132,8 +132,8 @@ export default function Download() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">100% Gratuito</h4>
-              <p className="text-sm text-gray-600">Sin limitaciones, sin costo, para toda la comunidad</p>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('download.features.free.title')}</h4>
+              <p className="text-sm text-gray-600">{t('download.features.free.description')}</p>
             </div>
           </div>
         </motion.div>
@@ -149,10 +149,10 @@ export default function Download() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="font-semibold">Instalación Simple</span>
+            <span className="font-semibold">{t('download.installation.title')}</span>
           </div>
           <p className="text-sm text-gray-600">
-            Instalador directo, sin configuración técnica complicada
+            {t('download.installation.description')}
           </p>
         </motion.div>
 
@@ -176,10 +176,9 @@ export default function Download() {
                 Windows
               </h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• Windows 10 o superior</li>
-                <li>• 4 GB de RAM mínimo</li>
-                <li>• 100 MB de espacio libre</li>
-                <li>• Resolución mínima 1024x768</li>
+                {t('download.systemRequirements.windows.requirements').map((req, index) => (
+                  <li key={index}>• {req}</li>
+                ))}
               </ul>
             </div>
             
@@ -192,10 +191,9 @@ export default function Download() {
                 macOS
               </h4>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li>• macOS 10.15 o superior</li>
-                <li>• 4 GB de RAM mínimo</li>
-                <li>• 100 MB de espacio libre</li>
-                <li>• Resolución mínima 1024x768</li>
+                {t('download.systemRequirements.macos.requirements').map((req, index) => (
+                  <li key={index}>• {req}</li>
+                ))}
               </ul>
             </div>
           </div>

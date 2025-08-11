@@ -345,7 +345,7 @@ export const translations = {
               </ol>
               <p><strong>Para Windows:</strong></p>
               <ol className="list-decimal list-inside space-y-1">
-                <li>Descarga el instalador .exe desde GitHub</li>
+                <li>Descarga el instalador .msi desde GitHub</li>
                 <li>Ejecuta el instalador como administrador</li>
                 <li>Sigue las instrucciones del asistente de instalación</li>
                 <li>Si Windows Defender bloquea la app, haz clic en "Más información" {'>'} "Ejecutar de todas formas"</li>
@@ -359,10 +359,9 @@ export const translations = {
           answer: (
             <div>
               <ul className="space-y-2">
-                <li><strong>Espacio:</strong> Play/Pausa del temporizador</li>
-                <li><strong>R:</strong> Reset del temporizador al tiempo inicial</li>
+                <li><strong>Command + Shift + Espacio:</strong> Play/Pausa del temporizador</li>
+                <li><strong>Command + Shift + R:</strong> Reset del temporizador al tiempo inicial</li>
                 <li><strong>Escape:</strong> Alternar modo pantalla completa</li>
-                <li><strong>F:</strong> Alternar modo focus (ocultar controles)</li>
                 <li><strong>T:</strong> Alternar entre diferentes temas visuales</li>
                 <li><strong>+/-:</strong> Ajustar tamaño de fuente</li>
                 <li><strong>Flecha arriba/abajo:</strong> Ajustar tiempo en incrementos</li>
@@ -541,19 +540,19 @@ npm run tauri build`
           items: [
             {
               name: "Documentación",
-              href: "https://github.com/yourusername/stage-timer-tauri/docs",
+              href: "https://github.com/russofg/stage-timer-pro/docs",
             },
             {
               name: "FAQ",
-              href: "https://github.com/yourusername/stage-timer-tauri/docs/FAQ.md",
+              href: "https://github.com/russofg/stage-timer-pro/docs/FAQ.md",
             },
             {
               name: "GitHub Discussions",
-              href: "https://github.com/yourusername/stage-timer-tauri/discussions",
+              href: "https://github.com/russofg/stage-timer-pro/discussions",
             },
             {
               name: "Reportar Bugs",
-              href: "https://github.com/yourusername/stage-timer-tauri/issues",
+              href: "https://github.com/russofg/stage-timer-pro/issues",
             },
           ],
         },
@@ -565,7 +564,7 @@ npm run tauri build`
             { name: "Licencia Open Source", href: "/license" },
             {
               name: "Contribuir",
-              href: "https://github.com/yourusername/stage-timer-tauri/blob/main/CONTRIBUTING.md",
+              href: "https://github.com/russofg/stage-timer-pro/blob/main/CONTRIBUTING.md",
             },
           ],
         },
@@ -598,7 +597,7 @@ npm run tauri build`
         { name: "Licencia MIT", href: "/license" },
         {
           name: "Contribuir",
-          href: "https://github.com/yourusername/stage-timer-tauri",
+          href: "https://github.com/russofg/stage-timer-pro",
         },
       ],
     },
@@ -949,7 +948,7 @@ npm run tauri build`
               </ol>
               <p><strong>For Windows:</strong></p>
               <ol className="list-decimal list-inside space-y-1">
-                <li>Download the .exe installer from GitHub</li>
+                <li>Download the .msi installer from GitHub</li>
                 <li>Run the installer as administrator</li>
                 <li>Follow the installation wizard instructions</li>
                 <li>If Windows Defender blocks the app, click "More info" {'>'} "Run anyway"</li>
@@ -963,10 +962,9 @@ npm run tauri build`
           answer: (
             <div>
               <ul className="space-y-2">
-                <li><strong>Space:</strong> Play/Pause timer</li>
-                <li><strong>R:</strong> Reset timer to initial time</li>
+                <li><strong>Command + Shift + Space:</strong> Play/Pause timer</li>
+                <li><strong>Command + Shift + R:</strong> Reset timer to initial time</li>
                 <li><strong>Escape:</strong> Toggle fullscreen mode</li>
-                <li><strong>F:</strong> Toggle focus mode (hide controls)</li>
                 <li><strong>T:</strong> Toggle between different visual themes</li>
                 <li><strong>+/-:</strong> Adjust font size</li>
                 <li><strong>Arrow up/down:</strong> Adjust time in increments</li>
@@ -1015,23 +1013,7 @@ npm run tauri build`
               </ul>
             </div>
           )
-        },
-        {
-          icon: "🎨",
-          question: "Can I customize the timer appearance?",
-          answer: (
-            <div>
-              <p className="mb-3">Yes, Stage Timer Pro includes multiple customization options:</p>
-              <ul className="list-disc list-inside space-y-2">
-                <li><strong>Themes:</strong> Dark, Light, Clean, High Contrast</li>
-                <li><strong>Font size:</strong> Adjustable with +/- or settings</li>
-                <li><strong>Colors:</strong> Different color schemes per theme</li>
-                <li><strong>Layout:</strong> Control and information positioning</li>
-              </ul>
-              <p className="mt-3">To change themes, use the <strong>T</strong> key or go to Settings in the main menu.</p>
-            </div>
-          )
-        },
+        }, 
         {
           icon: "📱",
           question: "Is there a mobile or web version?",

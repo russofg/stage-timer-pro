@@ -27,7 +27,7 @@ export default function Hero() {
         }}></div>
       </div>
 
-      <div className="relative z-10 container-custom text-center text-white px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
+      <div className="relative z-10 lg:mt-40 container-custom text-center text-white px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,11 +81,11 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.6 }}
           >
             <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-accent-400 mb-1 sm:mb-2">10,000+</div>
+              <div className="text-2xl sm:text-3xl font-bold text-accent-400 mb-1 sm:mb-2">200+</div>
               <div className="text-sm sm:text-base text-primary-200">{t('hero.stats.activeUsers')}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl sm:text-3xl font-bold text-accent-400 mb-1 sm:mb-2">500+</div>
+              <div className="text-2xl sm:text-3xl font-bold text-accent-400 mb-1 sm:mb-2">30+</div>
               <div className="text-sm sm:text-base text-primary-200">{t('hero.stats.enterprises')}</div>
             </div>
             <div className="text-center sm:col-span-1">
@@ -103,7 +103,7 @@ export default function Hero() {
           transition={{ duration: 1, delay: 1.2 }}
         >
           <div className="animate-bounce">
-            <ArrowDownIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white opacity-80" />
+            <ArrowDownIcon className="w-10 h-10 sm:w-10 sm:h-10 lg:mt-8  text-white opacity-80" />
           </div>
         </motion.div>
       </div>

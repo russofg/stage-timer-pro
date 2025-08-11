@@ -200,8 +200,8 @@ export const translations = {
       subtitle:
         "Mira lo que dicen técnicos de eventos, productores y profesionales audiovisuales sobre Stage Timer Pro.",
       stats: [
-        { number: "5K+", label: "Usuarios Activos" },
-        { number: "200+", label: "Empresas" },
+        { number: "200+", label: "Usuarios Activos" },
+        { number: "30+", label: "Empresas" },
         { number: "4.9★", label: "Calificación Promedio" },
         { number: "99%", label: "Satisfacción" },
       ],
@@ -306,6 +306,8 @@ export const translations = {
         title: "Requisitos del Sistema",
         macos: {
           title: "macOS",
+          description: "Versión completa para macOS 10.15+",
+          fileSize: "~8.62 MB - Instalador DMG",
           requirements: [
             "macOS 10.14 (Mojave) o posterior",
             "Procesador Intel o Apple Silicon",
@@ -315,6 +317,8 @@ export const translations = {
         },
         windows: {
           title: "Windows",
+          description: "Versión completa para Windows 10/11",
+          fileSize: "~3.46 MB - Instalador directo",
           requirements: [
             "Windows 10 (1903) o Windows 11",
             "Arquitectura de procesador x64",
@@ -322,6 +326,25 @@ export const translations = {
             "100 MB de almacenamiento disponible",
           ],
         },
+      },
+      features: {
+        title: "Características Incluidas",
+        fast: {
+          title: "Rápido e Intuitivo",
+          description: "Interfaz simple y fluida para eventos profesionales",
+        },
+        multiscreen: {
+          title: "Multi-pantalla",
+          description: "Soporte completo para múltiples monitores",
+        },
+        free: {
+          title: "100% Gratuito",
+          description: "Sin limitaciones, sin costo, para toda la comunidad",
+        },
+      },
+      installation: {
+        title: "Instalación Simple",
+        description: "Instalador directo, sin configuración técnica complicada",
       },
     },
 
@@ -335,13 +358,13 @@ export const translations = {
           icon: "💻",
           question: "¿Cómo instalo Stage Timer Pro?",
           answer:
-            "Para macOS: 1) Descarga el archivo .dmg desde GitHub, 2) Monta el DMG haciendo doble clic, 3) Arrastra Stage Timer Pro a Applications, 4) Al primer inicio, ve a Preferencias del Sistema > Seguridad y Privacidad > General, 5) Haz clic en 'Abrir de todas formas'. Para Windows: 1) Descarga el instalador .exe, 2) Ejecuta como administrador, 3) Sigue el asistente de instalación, 4) Si Windows Defender bloquea, haz clic en 'Más información > Ejecutar de todas formas'.",
+            "Para macOS: 1) Descarga el archivo .dmg desde GitHub, 2) Monta el DMG haciendo doble clic, 3) Arrastra Stage Timer Pro a Applications, 4) Al primer inicio, ve a Preferencias del Sistema > Seguridad y Privacidad > General, 5) Haz clic en 'Abrir de todas formas'. Para Windows: 1) Descarga el instalador .msi, 2) Ejecuta como administrador, 3) Sigue el asistente de instalación, 4) Si Windows Defender bloquea, haz clic en 'Más información > Ejecutar de todas formas'.",
         },
         {
           icon: "⌨️",
           question: "¿Cuáles son los atajos de teclado principales?",
           answer:
-            "• Espacio: Play/Pausa del temporizador • R: Reset al tiempo inicial • Escape: Alternar pantalla completa • F: Alternar modo focus (ocultar controles) • T: Alternar entre temas visuales • +/-: Ajustar tamaño de fuente • Flechas arriba/abajo: Ajustar tiempo en incrementos. Los atajos funcionan globalmente cuando la app está activa.",
+            "• Command + Shift + Space: Play/Pausa del temporizador • Command + Shift + R: Reset al tiempo inicial • Escape: Alternar pantalla completa • T: Alternar entre temas visuales • +/-: Ajustar tamaño de fuente • Flechas arriba/abajo: Ajustar tiempo en incrementos. Los atajos funcionan globalmente cuando la app está activa.",
         },
         {
           icon: "🎥",
@@ -355,12 +378,7 @@ export const translations = {
           answer:
             "Stage Timer Pro soporta múltiples monitores: 1) Conecta el segundo monitor y configúralo en preferencias del sistema, 2) Arrastra Stage Timer al monitor secundario, 3) Activa pantalla completa (Escape o F11), 4) El monitor principal queda libre para presentaciones. Uso recomendado: Monitor principal para PowerPoint/Keynote/notas, monitor secundario para Stage Timer en pantalla completa.",
         },
-        {
-          icon: "🎨",
-          question: "¿Puedo personalizar la apariencia del timer?",
-          answer:
-            "Sí, Stage Timer Pro incluye múltiples opciones: • Temas: Dark, Light, Clean, High Contrast • Tamaño de fuente: Ajustable con +/- o configuración • Colores: Diferentes esquemas por tema • Layout: Posición de controles e información. Para cambiar temas, usa la tecla T o ve a Configuración en el menú principal.",
-        },
+
         {
           icon: "📱",
           question: "¿Hay una versión mobile o web?",
@@ -694,8 +712,8 @@ npm run tauri build`,
       subtitle:
         "See what event technicians, producers, and audiovisual professionals are saying about Stage Timer Pro.",
       stats: [
-        { number: "5K+", label: "Active Users" },
-        { number: "200+", label: "Companies" },
+        { number: "200", label: "Active Users" },
+        { number: "30+", label: "Companies" },
         { number: "4.9★", label: "Average Rating" },
         { number: "99%", label: "Satisfaction" },
       ],
@@ -799,6 +817,8 @@ npm run tauri build`,
         title: "System Requirements",
         macos: {
           title: "macOS",
+          description: "Complete version for macOS 10.15+",
+          fileSize: "~8.62 MB - DMG Installer",
           requirements: [
             "macOS 10.14 (Mojave) or later",
             "Intel or Apple Silicon processor",
@@ -808,6 +828,8 @@ npm run tauri build`,
         },
         windows: {
           title: "Windows",
+          description: "Complete version for Windows 10/11",
+          fileSize: "~3.46 MB - Direct installer",
           requirements: [
             "Windows 10 (1903) or Windows 11",
             "x64 processor architecture",
@@ -815,6 +837,25 @@ npm run tauri build`,
             "100 MB available storage",
           ],
         },
+      },
+      features: {
+        title: "Included Features",
+        fast: {
+          title: "Fast & Intuitive",
+          description: "Simple and fluid interface for professional events",
+        },
+        multiscreen: {
+          title: "Multi-screen",
+          description: "Complete support for multiple monitors",
+        },
+        free: {
+          title: "100% Free",
+          description: "No limitations, no cost, for the entire community",
+        },
+      },
+      installation: {
+        title: "Simple Installation",
+        description: "Direct installer, no complicated technical setup",
       },
     },
 
@@ -828,7 +869,7 @@ npm run tauri build`,
           icon: "💻",
           question: "How do I install Stage Timer Pro?",
           answer:
-            "For macOS: 1) Download the .dmg file from GitHub, 2) Mount the DMG by double-clicking, 3) Drag Stage Timer Pro to Applications, 4) On first launch, go to System Preferences > Security & Privacy > General, 5) Click 'Open Anyway'. For Windows: 1) Download the .exe installer, 2) Run as administrator, 3) Follow installation wizard, 4) If Windows Defender blocks, click 'More info > Run anyway'.",
+            "For macOS: 1) Download the .dmg file from GitHub, 2) Mount the DMG by double-clicking, 3) Drag Stage Timer Pro to Applications, 4) On first launch, go to System Preferences > Security & Privacy > General, 5) Click 'Open Anyway'. For Windows: 1) Download the .msi installer, 2) Run as administrator, 3) Follow installation wizard, 4) If Windows Defender blocks, click 'More info > Run anyway'.",
         },
         {
           icon: "⌨️",
@@ -976,7 +1017,7 @@ npm run tauri build`,
         },
       },
       copyright:
-        "© 2024 Stage Timer Pro - Free Open Source project for the community.",
+        "© 2025 Stage Timer Pro - Free Open Source project for the community.",
       bottomLinks: [
         { name: "Privacy Policy", href: "/privacy" },
         { name: "MIT License", href: "/license" },
